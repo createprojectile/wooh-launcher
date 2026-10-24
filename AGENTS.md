@@ -24,8 +24,8 @@ npm start            # запуск в dev-режиме
 npm test             # 21 тест (мок Electron + jsdom)
 npm run lint         # ESLint
 npm run verify       # lint + tests
-npm run pack         # release/win-unpacked
-npm run dist         # NSIS-установщик
+npm run pack         # ../artifacts/win-unpacked (вне проекта)
+npm run dist         # ../artifacts (NSIS, вне проекта)
 ```
 
 Перед запуском Electron убедитесь, что окружение не задаёт
@@ -54,7 +54,11 @@ src/main/bug-report.js    логи, отчёты, scrub путей/URL
 src/renderer/app.js       состояние UI, гейты, прогресс, диалоги
 src/renderer/i18n.js      словари ru/en
 test/run-tests.js         тесты
+docs/backend-api.md       спецификация API (server/ пока не реализован)
 ```
+
+`server/` — отдельный пакет (Node.js + Fastify + PostgreSQL), не входит в
+Electron-сборку. Его контракт и план реализации — `docs/backend-api.md`.
 
 ## Правила кода
 
@@ -127,6 +131,22 @@ test/run-tests.js         тесты
 - Dev-режим (`app.isPackaged === false`) пропускает самообновление и создание
   ярлыка — это ожидаемо.
 
+## Бекенд (API)
+
+Бекенд пока не реализован; его контракт и план — `docs/backend-api.md`.
+Если берётесь за реализацию:
+
+- код живёт в `server/` (отдельный `package.json`, Node.js + Fastify +
+  PostgreSQL + Redis), **не** в `src/` и не попадает в Electron-сборку;
+- сначала `server/openapi.yaml`, потом роуты; контракт и схема БД — в
+  `docs/backend-api.md`;
+- клиент подключается только через `api.enabled=false` по умолчанию, с
+  fallback на текущее поведение;
+- токены хранятся только в main-процессе (`safeStorage`), в renderer/preload
+  передаются лишь профиль и флаги;
+- обновляйте `docs/backend-api.md` при изменении контракта;
+- тесты сервера — `node:test` + `app.inject()`, без реального Steam API.
+
 ## Подводные камни
 
 - **Node.js**: используйте LTS (20/22). На самых новых версиях postinstall
@@ -163,3 +183,5 @@ test/run-tests.js         тесты
 - Логировать полные URL зеркал и пути пользователя.
 - Добавлять сетевые вызовы в тесты.
 - Менять `name` пакета и путь `userData`.
+- Включать `api.enabled` по умолчанию или класть серверные секреты в клиент.
+- Добавлять код бекенда в `src/` или в `build.files`.

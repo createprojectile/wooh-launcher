@@ -123,7 +123,8 @@ wooh-launcher/
 │     ├─ i18n.js             # русский/английский
 │     └─ background.png      # фон
 ├─ test/run-tests.js         # тесты (мок Electron + jsdom)
-├─ docs/                     # методика деобфускации и аудит безопасности
+├─ docs/                     # деобфускация, аудит, спецификация бекенда
+├─ server/                   # (планируется) API: см. docs/backend-api.md
 ├─ AGENTS.md                 # правила для ИИ-агентов и контрибьюторов
 ├─ eslint.config.mjs
 └─ LICENSE
@@ -200,8 +201,32 @@ manifest cache + verified cache
 - `tasklist` → запущен ли Steam;
 - `config/loginusers.vdf` → профиль и SteamID64;
 - публичный XML-профиль → имя и аватар;
-- `steamworks.js` → Web API ticket (кэш 45 с). Тикет никуда не отправляется —
-  это задел для серверной авторизации.
+- `steamworks.js` → Web API ticket (кэш 45 с). Сейчас тикет не отправляется;
+  по спецификации бекенда его можно обменивать на сессию лаунчера.
+
+## Бекенд (API)
+
+Бекенд пока **не реализован** — в проекте лежит только спецификация, по
+которой агент может добавить `server/` и подключить его к лаунчеру.
+
+📄 **[docs/backend-api.md](docs/backend-api.md)** — полная документация:
+архитектура, стек (Node.js + Fastify + PostgreSQL + Redis), структура
+`server/`, контракты всех эндпоинтов, Steam-авторизация, JWT/refresh, схема
+БД, интеграция с текущими модулями, безопасность, тесты и порядок реализации.
+
+Коротко, что покрывает API:
+
+- `POST /v1/auth/steam` — обмен локального Steam-тикета на сессию;
+- `GET /v1/config` — remote config, maintenance, feature flags;
+- `GET /v1/launcher/manifest` — обновление лаунчера;
+- `GET /v1/game/manifest` — манифест игры и зеркала;
+- `GET /v1/servers/status` — онлайн серверов с кэшем;
+- `POST /v1/reports` — приём отчётов об ошибках;
+- `/v1/admin/*` — публикация релизов/манифестов и работа с отчётами.
+
+Клиент подключается через фича-флаг `api.enabled` (по умолчанию `false`) и при
+недоступности API откатывается на текущее поведение: локальный Steam, зеркала
+из `config.json`, прямой A2S и локальные отчёты.
 
 ## `config.json`
 
@@ -234,6 +259,21 @@ manifest cache + verified cache
 
 Манифест лаунчера: `{ "version", "file", "size", "sha256" }`; установщик
 запускается с `/S --force-run`.
+
+После реализации бекенда в конфиг добавляется необязательный блок:
+
+```jsonc
+"api": {
+  "enabled": false,                       // true — использовать API
+  "baseUrl": "https://api.example.com",
+  "timeoutMs": 15000,
+  "authRequired": false,
+  "channel": "stable"
+}
+```
+
+При `enabled: false` или недоступном API лаунчер работает как раньше.
+Подробности — в [docs/backend-api.md](docs/backend-api.md).
 
 ## Хранилища данных
 
@@ -297,6 +337,8 @@ manifest cache + verified cache
   безопасности и подводные камни;
 - 🧩 [docs/deobfuscation.md](docs/deobfuscation.md) — что было изменено при
   деобфускации и как проверялась эквивалентность;
+- 🛠 [docs/backend-api.md](docs/backend-api.md) — спецификация бекенда (API)
+  для реализации в `server/`;
 - 🔐 [docs/security.md](docs/security.md) — аудит безопасности.
 
 ## Лицензия
