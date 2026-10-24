@@ -1,0 +1,55 @@
+{
+  "steamAuth": {
+    "appId": "480"
+  },
+  "servers": {
+    "main": 11252685,
+    "combat": 11487742
+  },
+  "serverQuery": {
+    "11252685": "5.42.211.95:35001",
+    "11487742": "5.42.211.95:35011"
+  },
+  "launcherUpdate": {
+    "enabled": true,
+    "manifestUrl": "/launcher/manifest.json",
+    "downloadPath": "/launcher",
+    "downloadConcurrency": 4,
+    "mirrors": [
+      {
+        "name": "Лаунчер #1",
+        "url": "https://huggingface.co/datasets/123123dzc/upd-url-dataset/resolve/main"
+      },
+      {
+        "name": "Лаунчер #2",
+        "url": "https://huggingface.co/datasets/vinokurovv/x7k-assets/resolve/main"
+      },
+      {
+        "name": "Лаунчер #3",
+        "url": "https://huggingface.co/datasets/milanov888/assets-xviindyuo/resolve/main"
+      }
+    ]
+  },
+  "support": {
+    "telegram": "https://t.me/woohrust",
+    "discord": "https://discord.gg/VGZxrR6JnR"
+  },
+  "gameCdn": {
+    "manifestPath": "/manifest.json",
+    "downloadConcurrency": 6,
+    "mirrors": [
+      {
+        "name": "HF #1",
+        "url": "https://huggingface.co/datasets/nicknock12/a2a-knowledges/resolve/main"
+      },
+      {
+        "name": "HF #2",
+        "url": "https://huggingface.co/datasets/dfgjhdfhjgjdf/35-set-available/resolve/main"
+      },
+      {
+        "name": "HF #3",
+        "url": "https://huggingface.co/datasets/noryxxxx/44-set-available/resolve/main"
+      }
+    ]
+  }
+}

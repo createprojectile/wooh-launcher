@@ -1,0 +1,561 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com data:; img-src 'self' data: https:; connect-src https://fonts.googleapis.com https://fonts.gstatic.com; object-src 'none'; base-uri 'none'; form-action 'none'"
+    />
+    <title>WoohProject — Лаунчер</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <!-- Background -->
+    <div class="bg-image"></div>
+    <div class="bg-overlay"></div>
+    <div class="bg-noise"></div>
+
+    <div class="steam-gate" id="steam-gate">
+      <div class="steam-gate-panel">
+        <div class="steam-gate-spinner" id="steam-gate-spinner"></div>
+        <p class="steam-gate-message" id="steam-gate-message">Проверка Steam...</p>
+        <button
+          class="btn btn-steam steam-gate-retry"
+          id="btn-steam-retry"
+          style="display: none"
+          data-i18n="steamGate.retry"
+        >
+          Повторить
+        </button>
+      </div>
+    </div>
+
+    <div class="steam-gate launcher-update-gate is-hidden" id="launcher-update-gate">
+      <div class="steam-gate-panel">
+        <div class="steam-gate-spinner" id="launcher-update-spinner"></div>
+        <p class="steam-gate-message" id="launcher-update-message">Проверка обновлений...</p>
+        <div class="launcher-update-progress" id="launcher-update-progress" style="display: none">
+          <div class="launcher-update-progress-bar">
+            <div class="launcher-update-progress-fill" id="launcher-update-progress-fill"></div>
+          </div>
+          <span class="launcher-update-progress-text" id="launcher-update-progress-text">0%</span>
+        </div>
+        <button class="btn btn-steam steam-gate-retry" id="btn-update-retry" style="display: none">
+          Повторить
+        </button>
+      </div>
+    </div>
+
+    <!-- Custom Title Bar -->
+    <div class="titlebar">
+      <div class="titlebar-logo">
+        <span class="titlebar-logo-text"></span>
+      </div>
+      <div class="titlebar-controls">
+        <button
+          class="titlebar-btn"
+          id="btn-minimize"
+          data-i18n-title="titleBar.minimize"
+          title="Свернуть"
+        >
+          <svg width="12" height="2" viewBox="0 0 12 2">
+            <rect width="12" height="2" rx="1" fill="currentColor" />
+          </svg>
+        </button>
+        <button
+          class="titlebar-btn titlebar-btn-close"
+          id="btn-close"
+          data-i18n-title="titleBar.close"
+          title="Закрыть"
+        >
+          <svg width="12" height="12" viewBox="0 0 12 12">
+            <path
+              d="M1 1L11 11M11 1L1 11"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+            />
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Main Layout -->
+    <div class="app-container">
+      <!-- ═══ LEFT SIDEBAR ═══ -->
+      <aside class="sidebar">
+        <!-- User Profile -->
+        <div class="user-block">
+          <div class="user-avatar-wrap">
+            <div class="user-avatar-ring"></div>
+            <img
+              class="user-avatar"
+              id="user-avatar"
+              src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' fill='%23555'%3E%3Crect width='64' height='64' rx='12'/%3E%3Ctext x='50%25' y='55%25' text-anchor='middle' fill='%23888' font-size='20' font-family='Inter'%3E?%3C/text%3E%3C/svg%3E"
+              alt=""
+            />
+            <div class="user-status-dot" id="user-status-dot"></div>
+          </div>
+          <div class="user-info">
+            <span class="user-name" id="user-name" data-i18n-dynamic data-i18n="auth.notAuthorized"
+              >Не авторизован</span
+            >
+            <span class="user-steamid" id="user-steamid"></span>
+          </div>
+        </div>
+
+        <!-- Auth Buttons -->
+        <div class="auth-section" id="auth-section">
+          <button class="btn btn-steam" id="btn-steam-auth">
+            <svg
+              class="btn-icon"
+              width="18"
+              height="18"
+              viewBox="0 -2 28 28"
+              fill="currentColor"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="m24.72 7.094c0 2.105-1.707 3.812-3.812 3.812-1.053 0-2.006-.427-2.696-1.117-.74-.697-1.201-1.684-1.201-2.778 0-2.105 1.707-3.812 3.812-3.812 1.094 0 2.08.461 2.776 1.199l.002.002c.691.669 1.12 1.605 1.12 2.641v.055-.003zm-12.033 11.593c0-.004 0-.008 0-.012 0-2.151-1.744-3.894-3.894-3.894-.004 0-.008 0-.013 0h.001c-.299 0-.59.034-.87.099l.026-.005 1.625.656c.778.303 1.387.897 1.704 1.644l.007.02c.164.356.26.772.26 1.21 0 .418-.087.816-.244 1.176l.007-.019c-.304.778-.901 1.386-1.652 1.696l-.02.007c-.355.161-.77.254-1.206.254-.422 0-.824-.088-1.188-.246l.019.007q-.328-.125-.969-.383l-.953-.383c.337.627.82 1.138 1.405 1.498l.017.01c.568.358 1.258.571 1.999.571h.034-.002.012c2.151 0 3.894-1.744 3.894-3.894 0-.004 0-.008 0-.013v.001zm12.969-11.577c-.005-2.63-2.136-4.761-4.765-4.766-2.631.002-4.763 2.135-4.763 4.766s2.134 4.766 4.766 4.766c1.313 0 2.503-.531 3.364-1.391.863-.834 1.399-2.003 1.399-3.296 0-.028 0-.056-.001-.083zm2.344 0v.001c0 3.926-3.183 7.109-7.109 7.109h-.001l-6.828 4.981c-.116 1.361-.749 2.556-1.698 3.402l-.005.004c-.914.863-2.151 1.394-3.512 1.394-.023 0-.046 0-.069 0h.004c-2.534-.002-4.652-1.777-5.181-4.152l-.007-.035-3.594-1.438v-6.703l6.08 2.453c.758-.471 1.679-.75 2.664-.75h.041-.002q.203 0 .547.031l4.438-6.359c.05-3.898 3.218-7.04 7.122-7.047h.001c3.924.006 7.104 3.185 7.11 7.109v.001z"
+              />
+            </svg>
+            <span>ВОЙДИТЕ ЧЕРЕЗ STEAM</span>
+          </button>
+
+          <button
+            class="btn btn-logout"
+            id="btn-logout"
+            style="display: none"
+            data-i18n="auth.logout"
+          >
+            Выйти из аккаунта
+          </button>
+        </div>
+
+        <div class="sidebar-divider"></div>
+
+        <!-- Info Block -->
+        <div class="info-block">
+          <h3 class="info-title" data-i18n="info.title">ИНФОРМАЦИЯ:</h3>
+          <p class="info-text" data-i18n="info.body">
+            Для входа в лаунчер требуется запущенный Steam с активным аккаунтом. Авторизация
+            выполняется автоматически через ваш Steam-профиль.
+          </p>
+        </div>
+
+        <div class="sidebar-divider"></div>
+
+        <!-- FAQ Block -->
+        <div class="faq-block">
+          <h3 class="info-title" data-i18n="faq.title">ВОПРОСЫ И ОТВЕТЫ:</h3>
+
+          <div class="faq-item">
+            <button class="faq-question" data-faq="1">
+              <span class="faq-q-text">Зачем нужен лаунчер?</span
+              ><span class="faq-plus"
+                ><svg width="10" height="10" viewBox="0 0 10 10">
+                  <path
+                    d="M5 1V9M1 5H9"
+                    stroke="currentColor"
+                    stroke-width="1.4"
+                    stroke-linecap="round"
+                  /></svg
+              ></span>
+            </button>
+            <div class="faq-answer" id="faq-a-1">
+              Лаунчер автоматически скачивает и обновляет игровой клиент, а также проверяет
+              целостность файлов при каждом запуске. Это гарантирует стабильную работу игры.
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <button class="faq-question" data-faq="2">
+              <span class="faq-q-text">Это безопасно?</span
+              ><span class="faq-plus"
+                ><svg width="10" height="10" viewBox="0 0 10 10">
+                  <path
+                    d="M5 1V9M1 5H9"
+                    stroke="currentColor"
+                    stroke-width="1.4"
+                    stroke-linecap="round"
+                  /></svg
+              ></span>
+            </button>
+            <div class="faq-answer" id="faq-a-2">
+              Да. Лаунчер не собирает персональные данные и не имеет доступа к вашим паролям. Для
+              входа используется только локальный Steam-клиент.
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <button class="faq-question" data-faq="3">
+              <span class="faq-q-text">Какие данные вы используете?</span
+              ><span class="faq-plus"
+                ><svg width="10" height="10" viewBox="0 0 10 10">
+                  <path
+                    d="M5 1V9M1 5H9"
+                    stroke="currentColor"
+                    stroke-width="1.4"
+                    stroke-linecap="round"
+                  /></svg
+              ></span>
+            </button>
+            <div class="faq-answer" id="faq-a-3">
+              Используется только ваш SteamID для идентификации. Никакие пароли, переписки или
+              другая личная информация не хранятся.
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <button class="faq-question" data-faq="4">
+              <span class="faq-q-text">Потянет ли у меня?</span
+              ><span class="faq-plus"
+                ><svg width="10" height="10" viewBox="0 0 10 10">
+                  <path
+                    d="M5 1V9M1 5H9"
+                    stroke="currentColor"
+                    stroke-width="1.4"
+                    stroke-linecap="round"
+                  /></svg
+              ></span>
+            </button>
+            <div class="faq-answer" id="faq-a-4">
+              <strong>Мин. системные требования WoohRust:</strong><br /><br />
+              • ОС: Windows 10 (64-bit)<br />
+              • Процессор: Intel Core i5-2300 / AMD FX-6300<br />
+              • Оперативная память: 10–12 GB RAM<br />
+              • Видеокарта: NVIDIA GeForce 8800 / ATI 3800 Series<br />
+              • Место на диске: 19–20 GB свободного пространства (SSD)
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <button class="faq-question" data-faq="5">
+              <span class="faq-q-text">У меня проблема, где найти поддержку?</span
+              ><span class="faq-plus"
+                ><svg width="10" height="10" viewBox="0 0 10 10">
+                  <path
+                    d="M5 1V9M1 5H9"
+                    stroke="currentColor"
+                    stroke-width="1.4"
+                    stroke-linecap="round"
+                  /></svg
+              ></span>
+            </button>
+            <div class="faq-answer" id="faq-a-5">
+              Напишите в наш бот технической поддержки в Telegram:<br /><br />
+              <a href="https://t.me/woohreportbot" class="faq-link">t.me/woohreportbot</a>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- ═══ MAIN CONTENT (no scroll) ═══ -->
+      <main class="content">
+        <!-- Header: Title + Social Buttons -->
+        <div class="content-header" style="justify-content: flex-end">
+          <div class="social-section">
+            <a
+              href="https://discord.gg/VGZxrR6JnR"
+              class="social-btn"
+              id="btn-discord"
+              data-i18n-title="social.discord"
+              title="Discord"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24">
+                <path
+                  fill="currentColor"
+                  d="M20.32 4.37a19.8 19.8 0 0 0-4.89-1.52.07.07 0 0 0-.08.04c-.21.38-.45.87-.61 1.26a18.27 18.27 0 0 0-5.49 0 12.6 12.6 0 0 0-.62-1.26.07.07 0 0 0-.08-.04 19.74 19.74 0 0 0-4.89 1.52.07.07 0 0 0-.03.03C1.16 8.56.34 12.58.82 16.56a.08.08 0 0 0 .03.05 19.9 19.9 0 0 0 5.99 3.03.08.08 0 0 0 .08-.03c.46-.63.87-1.3 1.22-2a.08.08 0 0 0-.04-.11 13.1 13.1 0 0 1-1.87-.9.08.08 0 0 1 0-.12c.13-.09.25-.19.37-.29a.07.07 0 0 1 .07-.01c3.93 1.8 8.18 1.8 12.07 0a.07.07 0 0 1 .08.01c.12.1.24.2.37.29a.08.08 0 0 1 0 .12c-.6.35-1.22.65-1.88.9a.08.08 0 0 0-.04.11c.36.7.77 1.37 1.22 2a.08.08 0 0 0 .08.03 19.83 19.83 0 0 0 6-3.03.08.08 0 0 0 .03-.05c.56-4.62-.94-8.62-3.97-12.17a.06.06 0 0 0-.03-.02zM8.02 14.09c-1.05 0-1.92-.97-1.92-2.16s.85-2.16 1.92-2.16c1.07 0 1.93.98 1.92 2.16 0 1.19-.85 2.16-1.92 2.16zm7.1 0c-1.06 0-1.93-.97-1.93-2.16s.85-2.16 1.93-2.16 1.93.98 1.92 2.16c0 1.19-.85 2.16-1.92 2.16z"
+                />
+              </svg>
+            </a>
+            <a
+              href="https://t.me/woohrust"
+              class="social-btn"
+              id="btn-telegram"
+              data-i18n-title="social.telegram"
+              title="Telegram"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24">
+                <path
+                  fill="currentColor"
+                  d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 0 0-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"
+                />
+              </svg>
+            </a>
+            <a
+              href="https://woohrust.gamestores.app"
+              class="social-btn"
+              id="btn-shop"
+              data-i18n-title="social.shop"
+              title="Магазин"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24">
+                <path
+                  fill="currentColor"
+                  d="M7 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm10 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM7.16 14.26l.04-.12.94-1.7h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49A1 1 0 0 0 20.05 4H5.21l-.94-2H1v2h2l3.6 7.59-1.35 2.44C4.52 15.37 5.48 17 7 17h12v-2H7.42c-.14 0-.25-.11-.25-.25z"
+                />
+              </svg>
+            </a>
+          </div>
+        </div>
+
+        <!-- Action Card: Play / Install + Progress unified -->
+        <div class="action-card" id="action-card">
+          <div class="action-card-glow"></div>
+          <div class="action-controls">
+            <div class="btn-play-wrap">
+              <div class="btn-play-ring"></div>
+              <button class="btn-play" id="btn-play" disabled>
+                <span class="btn-play-icon-wrapper" id="play-icon-wrapper" style="display: flex">
+                  <svg
+                    width="22"
+                    height="22"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path d="M12 3V14" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" />
+                    <path
+                      d="M7.5 10.5L12 15L16.5 10.5"
+                      stroke="#FFFFFF"
+                      stroke-width="2.4"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                    <rect x="4" y="18" width="16" height="2.5" rx="1.25" fill="#FFFFFF" />
+                  </svg>
+                </span>
+                <span id="btn-play-text">Проверка...</span>
+              </button>
+            </div>
+            <button
+              class="btn-action-sm btn-pause"
+              id="btn-pause"
+              style="display: none"
+              data-i18n-title="download.pause"
+              title="Пауза"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24">
+                <rect x="6" y="4" width="4" height="16" rx="1" fill="currentColor" />
+                <rect x="14" y="4" width="4" height="16" rx="1" fill="currentColor" />
+              </svg>
+            </button>
+            <button
+              class="btn-action-sm btn-cancel-dl"
+              id="btn-cancel-dl"
+              style="display: none"
+              data-i18n-title="download.cancel"
+              title="Отмена"
+            >
+              <svg width="14" height="14" viewBox="0 0 12 12">
+                <path
+                  d="M1 1L11 11M11 1L1 11"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                />
+              </svg>
+            </button>
+          </div>
+          <div class="progress-wrap" id="progress-wrap" style="display: none">
+            <div class="progress-phase" id="progress-phase">Подготовка</div>
+            <div class="progress-bar">
+              <div class="progress-fill" id="progress-fill"></div>
+            </div>
+            <div class="progress-info">
+              <span class="progress-text" id="progress-text">0%</span>
+              <span class="progress-speed" id="progress-speed"></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Server Online -->
+        <div class="online-section">
+          <div class="online-header">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="2" />
+              <path
+                d="M4 20c0-4 4-6 8-6s8 2 8 6"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+              />
+            </svg>
+            <span
+              ><span data-i18n="online.total">ОБЩИЙ ОНЛАЙН:</span>
+              <strong id="total-online">—</strong></span
+            >
+          </div>
+          <div class="servers-grid">
+            <div class="server-card" id="server-main">
+              <div class="server-status-dot online" id="server-main-dot"></div>
+              <div class="server-info">
+                <span class="server-name" id="server-main-name">MAIN</span>
+                <span class="server-map" id="server-main-map">—</span>
+              </div>
+              <div class="server-players">
+                <span class="server-count" id="server-main-players">—</span>
+                <span class="server-max">/ <span id="server-main-max">—</span></span>
+              </div>
+            </div>
+            <div class="server-card" id="server-combat">
+              <div class="server-status-dot online" id="server-combat-dot"></div>
+              <div class="server-info">
+                <span class="server-name" id="server-combat-name">COMBAT</span>
+                <span class="server-map" id="server-combat-map">—</span>
+              </div>
+              <div class="server-players">
+                <span class="server-count" id="server-combat-players">—</span>
+                <span class="server-max">/ <span id="server-combat-max">—</span></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="modal-overlay" id="modal-settings" style="display: none">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 data-i18n="settings.title">Настройки</h2>
+          <button class="modal-close" id="modal-close">
+            <svg width="14" height="14" viewBox="0 0 12 12">
+              <path
+                d="M1 1L11 11M11 1L1 11"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+              />
+            </svg>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="setting-row">
+            <label class="setting-label" data-i18n="settings.installPath">Путь установки:</label>
+            <div class="setting-path-row">
+              <input
+                class="setting-input"
+                id="install-path"
+                type="text"
+                value="C:\WoohRustClient"
+                readonly
+              />
+              <button class="btn btn-small" id="btn-browse" data-i18n="settings.browse">
+                Обзор
+              </button>
+            </div>
+          </div>
+          <div class="setting-row">
+            <label class="setting-label" data-i18n="settings.launchArgs">Параметры запуска:</label>
+            <input
+              class="setting-input"
+              id="launch-args"
+              type="text"
+              placeholder="-high -maxMem=16000"
+              data-i18n-placeholder="settings.launchArgsPlaceholder"
+            />
+          </div>
+          <div class="setting-row">
+            <label class="setting-label" data-i18n="settings.language">Язык:</label>
+            <select class="setting-select" id="setting-lang">
+              <option value="ru">Русский</option>
+              <option value="en">English</option>
+            </select>
+          </div>
+          <div class="setting-row">
+            <label class="setting-label" data-i18n="settings.help">Помощь:</label>
+            <div class="setting-path-row" style="flex-wrap: wrap">
+              <button
+                class="btn btn-small"
+                id="btn-game-diagnose"
+                data-i18n="settings.gameDiagnose"
+              >
+                Игра не запускается
+              </button>
+              <button class="btn btn-small" id="btn-net-diagnose" data-i18n="settings.netDiagnose">
+                Диагностика сети
+              </button>
+              <button class="btn btn-small" id="btn-open-reports" data-i18n="settings.openReports">
+                Папка отчётов
+              </button>
+            </div>
+            <div class="setting-hint" id="net-diagnose-status" style="display: none"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Error Modal: текст ошибки + код отчёта + «Отправить в поддержку» -->
+    <div class="modal-overlay" id="modal-error" style="display: none">
+      <div class="modal-content modal-error">
+        <div class="modal-header">
+          <h2 id="error-title">Ошибка</h2>
+          <button class="modal-close" id="error-close">
+            <svg width="14" height="14" viewBox="0 0 12 12">
+              <path
+                d="M1 1L11 11M11 1L1 11"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+              />
+            </svg>
+          </button>
+        </div>
+        <div class="modal-body">
+          <p class="error-message" id="error-message"></p>
+          <div class="error-code" id="error-code"></div>
+          <div class="error-actions">
+            <button class="btn btn-small btn-support" id="error-send-tg">
+              Отправить в поддержку
+            </button>
+            <button class="btn btn-small" id="error-send-dc" style="display: none">
+              Через Discord
+            </button>
+            <button class="btn btn-small" id="error-ok">Закрыть</button>
+          </div>
+          <div class="setting-hint" id="error-hint" style="display: none"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Ask Modal: простой вопрос с двумя большими кнопками -->
+    <div class="modal-overlay" id="modal-ask" style="display: none">
+      <div class="modal-content modal-error">
+        <div class="modal-header">
+          <h2 id="ask-title">Помощник</h2>
+        </div>
+        <div class="modal-body">
+          <p class="error-message" id="ask-message"></p>
+          <p class="ask-question" id="ask-question"></p>
+          <div class="error-actions">
+            <button class="btn btn-small btn-support" id="ask-yes">Да</button>
+            <button class="btn btn-small" id="ask-no">Нет</button>
+          </div>
+          <div class="error-code" id="ask-code" style="margin: 12px 0 0"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Settings FAB -->
+    <button class="settings-fab" id="btn-settings" data-i18n-title="settings.fab" title="Настройки">
+      <svg width="18" height="18" viewBox="0 0 24 24">
+        <path
+          fill="currentColor"
+          d="M19.14 12.94a7.07 7.07 0 0 0 .06-.94c0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96a7.04 7.04 0 0 0-1.62-.94l-.36-2.54a.48.48 0 0 0-.48-.41h-3.84a.48.48 0 0 0-.48.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.48.48 0 0 0-.59.22L2.74 8.87a.48.48 0 0 0 .12.61l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.49.37 1.03.7 1.62.94l.36 2.54c.05.24.26.41.48.41h3.84c.24 0 .44-.17.48-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6A3.6 3.6 0 1 1 12 8.4a3.6 3.6 0 0 1 0 7.2z"
+        />
+      </svg>
+    </button>
+
+    <script src="i18n.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
